@@ -62,50 +62,50 @@ public class PDFHelper {
     }
 
     public static PImage getPageImage(String pathtoPdf, int pageNum) {
-        //InputStream is = PDFHelper.class.getResourceAsStream(pathtoPdf);
-
         ArrayList<PImage> images = new ArrayList<PImage>();
         PDDocument pdf = null;
-
+        PImage pageImage = null;
         try {
             InputStream is = new FileInputStream(pathtoPdf);
             pdf = PDDocument.load(is);
+
+            List<PDPage> pages = pdf.getDocumentCatalog().getAllPages();
+
+            if (pageNum >= 0 && pageNum <= pages.size()) {
+                PDPage page = pages.get(pageNum-1);
+
+                try {
+                    BufferedImage image = page.convertToImage();
+
+                    PImage img = new PImage(image.getWidth(), image.getHeight(), PConstants.ARGB);
+                    image.getRGB(0, 0, img.width, img.height, img.pixels, 0, img.width);
+                    img.updatePixels();
+                    pageImage = img;
+                } catch (IOException e) {
+                    System.out.println("problem converting to image");
+                    e.printStackTrace();
+                }
+
+            } else {
+                System.out.println("You requested page " + pageNum + " but there are only " + pages.size() + " pages");
+                return null;
+            }
+
         } catch (IOException e) {
             System.out.println("Couldn't load pdf");
             System.out.println("DID YOU ADD THE ASSETS FOLDER TO YOUR CLASS PATH IN ECLIPSE?");
             System.out.println(e.getMessage());
             e.printStackTrace();
-        }
-
-        List<PDPage> pages = pdf.getDocumentCatalog().getAllPages();
-
-        if (pageNum >= 0 && pageNum <= pages.size()) {
-            PDPage page = pages.get(pageNum-1);
-
-            try {
-                BufferedImage image = page.convertToImage();
-
-                PImage img = new PImage(image.getWidth(), image.getHeight(), PConstants.ARGB);
-                image.getRGB(0, 0, img.width, img.height, img.pixels, 0, img.width);
-                img.updatePixels();
-                return img;
-            } catch (IOException e) {
-                System.out.println("problem converting to image");
-                e.printStackTrace();
+        } finally {
+            if (pdf != null) {
+                try {
+                    pdf.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-
-        } else {
-            System.out.println("You requested page " + pageNum + " but there are only " + pages.size() + " pages");
-            return null;
         }
 
-        try {
-            pdf.close();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        return null;
+        return pageImage;
     }
 }

@@ -499,6 +499,9 @@ public class DImage {
         this.setPixels(DImage.combineColorComponents(channels));
     }
 
+    public void getRGB(int i, int i1, int width, int height, int[] pixels, int i2, int width1) {
+    }
+
     // Data transfer object
     private static class ColorComponents2d {
         public int width, height;
